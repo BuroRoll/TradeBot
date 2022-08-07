@@ -1,4 +1,5 @@
-FROM python:3.10.5-alpine3.15
+FROM python:3.6-alpine
+RUN apk add g++
 
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
