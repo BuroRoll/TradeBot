@@ -4,9 +4,11 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN pip install --upgrade pip
 COPY ./ ./
-RUN apk add --update make cmake gcc g++ gfortran
-RUN apk add --update python py-pip python-dev
+RUN apt-get -y install libc-dev
+RUN apt-get -y install build-essential
+RUN pip install -U pip
+RUN pip install --upgrade pip
+
 RUN pip install -r requirements.txt
 CMD [ "python", "./main.py"]
