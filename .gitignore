@@ -1,0 +1,4 @@
+# Mac ignore file
+.DS_Store
+.env
+.idea
