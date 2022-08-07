@@ -58,9 +58,9 @@ def run_threaded(job_func):
 def main():
     schedule.every(1).minute.do(run_threaded, trading)
     schedule.every(1).day.do(run_threaded, log_day_results)
-    logger.add('day_result.log', filter=lambda record: record['extra']['task'] == 'day_result',
+    logger.add('./logs/day_result.log', filter=lambda record: record['extra']['task'] == 'day_result',
                format="{time:YYYY-MM-DD at HH:mm:ss} | {message}")
-    logger.add('trade_result.log', filter=lambda record: record['extra']['task'] == 'trade_result',
+    logger.add('./logs/trade_result.log', filter=lambda record: record['extra']['task'] == 'trade_result',
                format="{time:YYYY-MM-DD at HH:mm:ss} | {message}")
     while True:
         schedule.run_pending()
