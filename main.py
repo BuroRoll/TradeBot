@@ -20,8 +20,8 @@ client = Spot(key=api_key, secret=secret_key)
 
 def trading():
     logger_trading = logger.bind(task='trade_result')
-    usd_balance = get_balance(client, 'USDT')
-    is_buy = True if usd_balance < 10 else False
+    last_order = client.get_orders(trade_pair, limit=1)[0]['side']
+    is_buy = True if last_order == 'BUY' else False
     data = get_ticket_data(client, trade_pair, ticket_time, 20)
     current_price = data[-1]
     trend_price = get_trend_price(data, 2)
