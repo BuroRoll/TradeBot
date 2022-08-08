@@ -8,7 +8,8 @@ def get_ticket_time_data(client, ticket, time, limit):
 
 
 def get_current_ticket_price(client, ticket):
-    return client.ticker_price(ticket)['price']
+    current_price = client.ticker_price(ticket)['price']
+    return float(current_price)
 
 
 def binance_trade(client, trade_pair, side, quantity):
