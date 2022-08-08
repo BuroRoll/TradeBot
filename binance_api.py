@@ -25,8 +25,8 @@ def get_balance(client, asset, clear=False):
             free_money = i['free']
             break
     if clear:
-        return float(free_money)
-    return float(free_money) * 0.98
+        return float("{0:.4f}".format(free_money))
+    return float("{0:.4f}".format(free_money))
 
 
 def get_current_price(client, ticket):
