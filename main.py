@@ -9,6 +9,7 @@ import schedule
 
 from binance_api import *
 from math_api import *
+from telegram_bot_api import *
 
 api_key = os.getenv('API_KEY')
 secret_key = os.getenv('SECRET_KEY')
@@ -27,17 +28,21 @@ def trading():
     trend_price = get_trend_price(data, 2)
     if current_price >= trend_price and not is_buy:
         usdt_balance = get_balance(client, 'USDT')
-        buy_count = usdt_balance / current_price
-        formated_buy_count = "{0:.4f}".format(buy_count)
+        buy_count = usdt_balance / current_price - 0.0001
+        formated_buy_count = float("{0:.4f}".format(buy_count))
         binance_trade(client, trade_pair, 'BUY', formated_buy_count)
-        logger_trading.success("Buy with current_price: {}, trend_price: {}, quantity: {}",
-                               current_price, trend_price, formated_buy_count)
+        log_string = (
+            f"Buy with current_price: {current_price}, trend_price: {trend_price}, quantity: {formated_buy_count}")
+        logger_trading.success(log_string)
+        send_notification_to_telegram(log_string)
     elif current_price < trend_price and is_buy:
         eth_balance = get_balance(client, 'ETH')
         formated_sell_count = "{0:.4f}".format(eth_balance)
         binance_trade(client, trade_pair, 'SELL', formated_sell_count)
-        logger_trading.success("Sell with current_price: {}, trend_price: {}, quantity: {}",
-                               current_price, trend_price, formated_sell_count)
+        log_string = (
+            f"Sell with current_price: {current_price}, trend_price: {trend_price}, quantity: {formated_sell_count}")
+        logger_trading.success(log_string)
+        send_notification_to_telegram(log_string)
 
 
 def log_day_results():
@@ -47,7 +52,10 @@ def log_day_results():
         eth_balance = get_balance(client, 'ETH', clear=True)
         eth_current_price = get_current_price(client, trade_pair)
         usdt_balance = eth_balance * eth_current_price
-    logger_day_results.success('Current balance {} USD', usdt_balance)
+    log_string = f'Current balance {usdt_balance} USD'
+    logger_day_results.success(log_string)
+    send_notification_to_telegram('Daily result:')
+    send_notification_to_telegram(log_string)
 
 
 def run_threaded(job_func):
