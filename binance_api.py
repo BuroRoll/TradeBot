@@ -1,10 +1,14 @@
-def get_ticket_data(client, ticket, time, limit):
+def get_ticket_time_data(client, ticket, time, limit):
     data = client.klines(symbol=ticket, interval=time, limit=limit)
     result = []
     for i in data:
         average = (float(i[2]) + float(i[3])) / 2
         result.append(average)
     return result
+
+
+def get_current_ticket_price(client, ticket):
+    return client.ticker_price(ticket)['price']
 
 
 def binance_trade(client, trade_pair, side, quantity):
@@ -17,7 +21,7 @@ def binance_trade(client, trade_pair, side, quantity):
     client.new_order(**params)
 
 
-def get_balance(client, asset, clear=False):
+def get_balance(client, asset):
     account = client.account()
     free_money = 0
     for i in account['balances']:
@@ -25,11 +29,3 @@ def get_balance(client, asset, clear=False):
             free_money = i['free']
             break
     return float(free_money)
-    # if clear:
-    #     return float("{0:.4}".format(free_money))
-    # return float("{0:.4}".format(free_money))
-
-
-def get_current_price(client, ticket):
-    data = client.klines(symbol=ticket, interval='1h', limit=1)
-    return data[0]

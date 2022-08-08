@@ -23,8 +23,8 @@ def trading():
     logger_trading = logger.bind(task='trade_result')
     last_order = client.get_orders(trade_pair, limit=1)[0]['side']
     is_buy = True if last_order == 'BUY' else False
-    data = get_ticket_data(client, trade_pair, ticket_time, 20)
-    current_price = data[-1]
+    data = get_ticket_time_data(client, trade_pair, ticket_time, 20)
+    current_price = get_current_ticket_price(client, trade_pair)
     trend_price = get_trend_price(data, 2)
     if current_price >= trend_price and not is_buy:
         usdt_balance = get_balance(client, 'USDT')
@@ -47,10 +47,10 @@ def trading():
 
 def log_day_results():
     logger_day_results = logger.bind(task='day_result')
-    usdt_balance = get_balance(client, 'USDT', clear=True)
+    usdt_balance = get_balance(client, 'USDT')
     if usdt_balance <= 10:
-        eth_balance = get_balance(client, 'ETH', clear=True)
-        eth_current_price = get_current_price(client, trade_pair)
+        eth_balance = get_balance(client, 'ETH')
+        eth_current_price = get_current_ticket_price(client, trade_pair)
         usdt_balance = eth_balance * eth_current_price
     log_string = f'Current balance {usdt_balance} USD'
     logger_day_results.success(log_string)
