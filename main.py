@@ -37,7 +37,7 @@ def trading():
         send_notification_to_telegram(log_string)
     elif current_price < trend_price and is_buy:
         eth_balance = get_balance(client, 'ETH')
-        formated_sell_count = "{0:.4f}".format(eth_balance)
+        formated_sell_count = float("{0:.4f}".format(eth_balance))-0.0001
         binance_trade(client, trade_pair, 'SELL', formated_sell_count)
         log_string = (
             f"Sell with current_price: {current_price}, trend_price: {trend_price}, quantity: {formated_sell_count}")
