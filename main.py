@@ -14,7 +14,7 @@ from telegram_bot_api import *
 api_key = os.getenv('API_KEY')
 secret_key = os.getenv('SECRET_KEY')
 trade_pair = 'ETHUSDT'
-ticket_time = '1h'
+ticket_time = '1m'
 
 client = Spot(key=api_key, secret=secret_key)
 
@@ -23,9 +23,9 @@ def trading():
     logger_trading = logger.bind(task='trade_result')
     last_order = client.get_orders(trade_pair, limit=1)[0]['side']
     is_buy = True if last_order == 'BUY' else False
-    data = get_ticket_time_data(client, trade_pair, ticket_time, 20)
+    data = get_ticket_time_data(client, trade_pair, ticket_time, 200)
     current_price = get_current_ticket_price(client, trade_pair)
-    trend_price = get_trend_price(data, 2)
+    trend_price = get_trend_price(data, 3)
     if current_price >= trend_price and not is_buy:
         usdt_balance = get_balance(client, 'USDT')
         buy_count = usdt_balance / current_price - 0.0001
