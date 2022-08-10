@@ -1,4 +1,3 @@
-import os
 from loguru import logger
 
 from binance.spot import Spot
@@ -26,7 +25,10 @@ def trading():
     data = get_ticket_time_data(client, trade_pair, ticket_time, 200)
     current_price = get_current_ticket_price(client, trade_pair)
     trend_price = get_trend_price(data, 3)
-    if current_price >= trend_price and not is_buy:
+    trend_coef = get_trend_coef(data, 3)
+
+    # Проверка на то, что цена выше тренда и тренд восходящий
+    if current_price >= trend_price and trend_coef > 0 and not is_buy:
         usdt_balance = get_balance(client, 'USDT')
         buy_count = usdt_balance / current_price - 0.0001
         formated_buy_count = float("{0:.4f}".format(buy_count))
