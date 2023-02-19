@@ -6,12 +6,13 @@ import time
 import threading
 import schedule
 
-from binance_api import *
-from math_api import *
-from telegram_bot_api import *
+from tools.binance_api import *
+from tools.telegram_bot_api import *
+from tools.super_trend import get_status
+from settings import settings
 
-api_key = os.getenv('API_KEY')
-secret_key = os.getenv('SECRET_KEY')
+api_key = settings.BINANCE_API_KEY
+secret_key = settings.BINANCE_SECRET_KEY
 trade_pair = 'ETHUSDT'
 ticket_time = '1h'
 
@@ -19,31 +20,32 @@ client = Spot(key=api_key, secret=secret_key)
 
 
 def trading():
-    logger_trading = logger.bind(task='trade_result')
     last_order = client.get_orders(trade_pair, limit=1)[0]['side']
     is_buy = True if last_order == 'BUY' else False
-    data = get_ticket_time_data(client, trade_pair, ticket_time, 20)
+    logger.info(f'Последний статус: {last_order}')
+    status = get_status()
+    logger.info(f'Статус супертренда: {status.status}')
     current_price = get_current_ticket_price(client, trade_pair)
-    trend_price = get_trend_price(data, 3)
-    is_uptrend = get_is_uptrend(data, 3)
-
+    logger.info(f'Текущая цена актива {trade_pair}: {current_price}')
+    # data = get_ticket_time_data(client, trade_pair, ticket_time, 20)
+    # trend_price = get_trend_price(data, 3)
+    # is_uptrend = get_is_uptrend(data, 3)
     # Проверка на то, что цена выше тренда и тренд восходящий
-    if current_price >= trend_price and is_uptrend and not is_buy:
+    # if current_price >= trend_price and is_uptrend and not is_buy:
+    if status.status == 'up' and not is_buy:
         usdt_balance = get_balance(client, 'USDT')
         buy_count = usdt_balance / current_price - 0.0001
         formated_buy_count = float("{0:.4f}".format(buy_count))
         binance_trade(client, trade_pair, 'BUY', formated_buy_count)
-        log_string = (
-            f"Buy with current_price: {current_price}, trend_price: {trend_price}, quantity: {formated_buy_count}")
-        logger_trading.success(log_string)
+        log_string = f'Покупка с ценой: {current_price}, количество: {formated_buy_count}'
+        logger.info(log_string)
         send_notification_to_telegram(log_string)
-    elif current_price < trend_price and is_buy:
+    elif status.status == 'down' and is_buy:
         eth_balance = get_balance(client, 'ETH')
         formated_sell_count = '{0:.4f}'.format(float("{0:.4f}".format(eth_balance)) - 0.0001)
         binance_trade(client, trade_pair, 'SELL', formated_sell_count)
-        log_string = (
-            f"Sell with current_price: {current_price}, trend_price: {trend_price}, quantity: {formated_sell_count}")
-        logger_trading.success(log_string)
+        log_string = (f'Продажа с ценой: {current_price}, количество: {formated_sell_count}')
+        logger.info(log_string)
         send_notification_to_telegram(log_string)
 
 
@@ -66,12 +68,10 @@ def run_threaded(job_func):
 
 
 def main():
+    logger.info(f'Начало работы бота')
     schedule.every(1).minute.do(run_threaded, trading)
     schedule.every(1).day.do(run_threaded, log_day_results)
-    logger.add('./logs/day_result.log', filter=lambda record: record['extra']['task'] == 'day_result',
-               format="{time:YYYY-MM-DD at HH:mm:ss} | {message}")
-    logger.add('./logs/trade_result.log', filter=lambda record: record['extra']['task'] == 'trade_result',
-               format="{time:YYYY-MM-DD at HH:mm:ss} | {message}")
+
     while True:
         schedule.run_pending()
         time.sleep(1)
